@@ -275,7 +275,7 @@ while not end:
     except ValueError:
         print("Invalid input, please enter valid integers.")
         continue
-
+#help
     if moves(start, finish, color, board):
         color = colors[color]
         end = end_game(board, color)
