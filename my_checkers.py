@@ -356,6 +356,5 @@ while not end:
     if moves(start, finish, color, board):
         color = colors[color]
         end = end_game(board, color)
-        print(second_turn)
     else:
         continue
