@@ -35,7 +35,7 @@ def moves(start, finish, color, board):
     # Check for regular piece (not a king)
     if board[i_start][j_start] == color.upper():
         # Regular move
-        if abs(i_finish - i_start) == 1 and abs(j_start - j_finish) == 1:
+        if abs(i_finish - i_start) == 1 and abs(j_start - j_finish) == 1 and board[i_finish][j_finish] == '0':
             if color == 'W' and i_start < i_finish:  # White piece moves down
                 board[i_start][j_start] = '0'
                 if i_finish == 7:
@@ -55,7 +55,7 @@ def moves(start, finish, color, board):
                 return False
 
         # Jumping over an opponent's piece
-        elif abs(i_finish - i_start) == 2 and abs(j_start - j_finish) == 2:
+        elif abs(i_finish - i_start) == 2 and abs(j_start - j_finish) == 2 and board[i_finish][j_finish] == '0':
             middle_i = (i_start + i_finish) // 2
             middle_j = (j_start + j_finish) // 2
             if board[middle_i][middle_j].upper() == colors[color]:  # Jumping over opponent's piece
@@ -77,7 +77,7 @@ def moves(start, finish, color, board):
                 return False
 
     # King move
-    elif board[i_start][j_start] == color.lower():
+    elif board[i_start][j_start] == color.lower() and board[i_finish][j_finish] == '0':
         if abs(i_finish - i_start) == abs(j_finish - j_start):
             step_i = 1 if i_finish > i_start else -1
             step_j = 1 if j_finish > j_start else -1
