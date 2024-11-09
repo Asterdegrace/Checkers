@@ -31,12 +31,13 @@ def start_board(rows, cols):
 def moves(start, finish, color, board):
     i_start, j_start = start
     i_finish, j_finish = finish
-
-    # Check for regular piece (not a king)
+    global second_turn
+    global last_used_piece
+    # Check for regular piece 
     if board[i_start][j_start] == color.upper():
         # Regular move
         if abs(i_finish - i_start) == 1 and abs(j_start - j_finish) == 1 and board[i_finish][j_finish] == '0':
-            if color == 'W' and i_start < i_finish:  # White piece moves down
+            if color == 'W' and i_start < i_finish:  
                 board[i_start][j_start] = '0'
                 if i_finish == 7:
                     board[i_finish][j_finish] = 'w'
@@ -58,17 +59,29 @@ def moves(start, finish, color, board):
         elif abs(i_finish - i_start) == 2 and abs(j_start - j_finish) == 2 and board[i_finish][j_finish] == '0':
             middle_i = (i_start + i_finish) // 2
             middle_j = (j_start + j_finish) // 2
-            if board[middle_i][middle_j].upper() == colors[color]:  # Jumping over opponent's piece
-                if color == 'W':  # White piece moves down
+            if board[middle_i][middle_j].upper() == colors[color]:  
+                
+                if color == 'W':  
                     board[i_start][j_start] = '0'
                     board[i_finish][j_finish] = 'W'
-                    board[middle_i][middle_j] = '0'  # Remove the eaten piece
-                    return True
-                elif color == 'B':  # Black piece moves up
+                    board[middle_i][middle_j] = '0'  
+                    if (can_continue_eating(i_finish, j_finish, board, color)):
+                        print('You can continue eating with this piece or input 0 0 and 0 0 to skip your turn')
+                        second_turn = True
+                        last_used_piece = (i_finish, j_finish)
+                    else: second_turn = False
+                    return not (can_continue_eating(i_finish, j_finish, board, color))
+                    
+                elif color == 'B':  
                     board[i_start][j_start] = '0'
                     board[i_finish][j_finish] = 'B'
-                    board[middle_i][middle_j] = '0'  # Remove the eaten piece
-                    return True
+                    board[middle_i][middle_j] = '0'  
+                    if (can_continue_eating(i_finish, j_finish, board, color)):
+                        print('You can continue eating with this piece or input 0 0 and 0 0 to skip your turn')
+                        second_turn = True
+                        last_used_piece = (i_finish, j_finish)
+                    else: second_turn = False
+                    return not (can_continue_eating(i_finish, j_finish, board, color))
                 else:
                     print(f"This is not the right direction for {color} to eat, try again")
                     return False
@@ -95,7 +108,13 @@ def moves(start, finish, color, board):
         # Move the king to the destination
             board[i_start][j_start] = '0'
             board[i_finish][j_finish] = color.lower()
-            return True
+            if (can_continue_king_eating(i_finish, j_finish, board, color)):
+                print('You can continue eating with this piece or input 0 0 and 0 0 to skip your turn')
+                second_turn = True
+                last_used_piece = (i_finish, j_finish)
+            else: second_turn = False
+            return not (can_continue_king_eating(i_finish, j_finish, board, color))
+
         else:
             print('You cannot move the king this way')
             return False
@@ -238,22 +257,71 @@ def print_board_with_moves(board, marked_board, rows):
         if i < len(board) - 1:
             print(SYMBOLS["H_SEP"] * (len(board[0]) * 4 + 2))
 
+def can_continue_eating(i, j, board, color):
+    directions = [(-2, -2), (-2, 2), (2, -2), (2, 2)]
+    opponent_color = colors[color]
+
+    for di, dj in directions:
+        ni, nj = i + di, j + dj
+        middle_i, middle_j = i + di // 2, j + dj // 2
+
+        # Check if the destination and middle cells are within bounds
+        if (
+            0 <= ni < len(board) and 0 <= nj < len(board[0])  
+            and board[ni][nj] == '0' 
+            and board[middle_i][middle_j].upper() == opponent_color  
+        ):
+            return True  
+
+    return False  
+
+
+def can_continue_king_eating(i, j, board, color):
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+    opponent_color = colors[color]
+
+    for di, dj in directions:
+        ni, nj = i + di, j + dj
+        opponent_found = False  
+
+        while 0 <= ni < len(board) and 0 <= nj < len(board[0]):
+            if board[ni][nj] == '0' and opponent_found:
+                
+                return True
+            elif board[ni][nj].upper() == color:
+                
+                break
+            elif board[ni][nj].upper() == opponent_color:
+                if opponent_found:
+                    
+                    break
+                opponent_found = True  
+            else:
+                opponent_found = False
+
+            
+            ni += di
+            nj += dj
+
+    return False  
 
 # Game
 end = False    
 color = 'W'
 board = start_board(rows, cols)
+second_turn = False
+last_used_piece =()
 
-'''board = [
+board = [
     ['W', ' ', '0', ' ', '0', ' ', '0', ' '],
     [' ', '0', ' ', 'B', ' ', '0', ' ', '0'],
+    ['0', ' ', '0', ' ', '0', ' ', 'B', ' '],
+    [' ', '0', ' ', '0', ' ', 'B', ' ', '0'],
     ['0', ' ', '0', ' ', '0', ' ', '0', ' '],
-    [' ', '0', ' ', '0', ' ', 'w', ' ', '0'],
-    ['0', ' ', '0', ' ', '0', ' ', '0', ' '],
-    [' ', '0', ' ', '0', ' ', '0', ' ', '0'],
-    ['0', ' ', '0', ' ', '0', ' ', '0', ' '],
+    [' ', '0', ' ', '0', ' ', 'B', ' ', '0'],
+    ['0', ' ', '0', ' ', 'w', ' ', '0', ' '],
     [' ', '0', ' ', '0', ' ', '0', ' ', '0']
-] #for debugging'''
+] #for debugging
 
 while not end:
     marked_board = mark_possible_moves(board, color)
@@ -267,7 +335,6 @@ while not end:
         # Try to convert input into two integers
         start = tuple(map(int, start_input.split()))
         finish = tuple(map(int, finish_input.split()))
-
         # Ensure there are exactly two integers for each input
         if len(start) != 2 or len(finish) != 2:
             print("Invalid input, please enter exactly two integers separated by space.")
@@ -275,9 +342,20 @@ while not end:
     except ValueError:
         print("Invalid input, please enter valid integers.")
         continue
-#help
+    if start == (0, 0) and finish == (0, 0):
+        color = colors[color]
+        second_turn = False
+        continue
+    if second_turn:
+        if start != last_used_piece:
+            print('Uou are supposed to play the same piece')
+            continue
+    if not (0<=start[1]<=7 and 0<=start[0]<=7 and 0<=finish[1]<=7 and 0<=finish[1]<=7):
+        print('Invalid coordinates')
+        continue
     if moves(start, finish, color, board):
         color = colors[color]
         end = end_game(board, color)
+        print(second_turn)
     else:
         continue
